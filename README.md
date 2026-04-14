@@ -3,7 +3,7 @@
 Projeto de um sistema simples de gestão escolar utilizando JavaScript puro e integração com o Supabase.  
 O objetivo é demonstrar operações CRUD completas consumindo uma API REST sem uso de bibliotecas externas.
 
----
+----
 
 ## 🚀 Tecnologias Utilizadas
 
