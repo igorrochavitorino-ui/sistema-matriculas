@@ -1,199 +1,39 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-br">
-<head>
-  <meta charset="UTF-8">
-  <title>Sistema de Matrículas</title>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Sistema de Matrículas</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
 
-  <style>
-    body {
-      font-family: Arial;
-      background: #0f172a;
-      color: white;
-      text-align: center;
-      padding: 20px;
-    }
+  <body>
+    <div class="container">
+      <div class="topo">
+        <img src="https://cdn-icons-png.flaticon.com/512/3135/3135755.png" />
+        <h1>Sistema de Matrículas</h1>
+      </div>
 
-    input {
-      padding: 10px;
-      margin: 5px;
-      border-radius: 5px;
-      border: none;
-    }
+      <p id="mensagem"></p>
 
-    button {
-      padding: 10px 15px;
-      margin: 5px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      background: #22c55e;
-      color: white;
-      font-weight: bold;
-    }
+      <div>
+        <input type="text" id="nome" placeholder="Nome" />
+        <input type="email" id="email" placeholder="Email" />
+        <button onclick="cadastrar()">Cadastrar</button>
+      </div>
 
-    button:hover {
-      background: #16a34a;
-    }
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nome</th>
+            <th>Email</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="tabela"></tbody>
+      </table>
+    </div>
 
-    table {
-      margin: 20px auto;
-      border-collapse: collapse;
-      width: 80%;
-    }
-
-    th, td {
-      border: 1px solid #334155;
-      padding: 10px;
-    }
-
-    th {
-      background: #1e293b;
-    }
-
-    #mensagem {
-      margin: 10px;
-      font-weight: bold;
-    }
-
-    .sucesso {
-      color: #22c55e;
-    }
-
-    .erro {
-      color: #ef4444;
-    }
-  </style>
-</head>
-
-<body>
-
-<h1>📚 Sistema de Matrículas</h1>
-
-<p id="mensagem"></p>
-
-<div>
-  <input type="text" id="nome" placeholder="Nome">
-  <input type="email" id="email" placeholder="Email">
-  <button onclick="cadastrar()">Cadastrar</button>
-</div>
-
-<br>
-
-<table>
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Nome</th>
-      <th>Email</th>
-      <th>Ações</th>
-    </tr>
-  </thead>
-  <tbody id="tabela"></tbody>
-</table>
-
-<script>
-const SUPABASE_URL = "https://obwnwcfzzpyhqljaszor.supabase.co/rest/v1/alunos";
-const API_KEY = "sb_publishable_eY2pBB5brdVmp0l1qgEFig_7gX7_GU4";
-
-const config = {
-  headers: {
-    "Content-Type": "application/json",
-    "apikey": API_KEY,
-    "Authorization": `Bearer ${API_KEY}`,
-    "Prefer": "return=representation"
-  }
-};
-
-function mostrarMensagem(texto, tipo) {
-  const msg = document.getElementById("mensagem");
-  msg.textContent = texto;
-  msg.className = tipo;
-
-  setTimeout(() => {
-    msg.textContent = "";
-  }, 3000);
-}
-
-async function listar() {
-  const res = await fetch(`${SUPABASE_URL}?select=*`, {
-    headers: config.headers
-  });
-
-  const data = await res.json();
-
-  const tabela = document.getElementById("tabela");
-  tabela.innerHTML = "";
-
-  data.forEach(aluno => {
-    tabela.innerHTML += `
-      <tr>
-        <td>${aluno.id}</td>
-        <td>${aluno.nome}</td>
-        <td>${aluno.email}</td>
-        <td>
-          <button onclick="editar(${aluno.id}, '${aluno.nome}')">Editar</button>
-          <button onclick="deletar(${aluno.id})">Excluir</button>
-        </td>
-      </tr>
-    `;
-  });
-}
-
-async function cadastrar() {
-  const nome = document.getElementById("nome").value;
-  const email = document.getElementById("email").value;
-
-  try {
-    const res = await fetch(SUPABASE_URL, {
-      method: "POST",
-      headers: config.headers,
-      body: JSON.stringify([{ nome, email }])
-    });
-
-    if (!res.ok) {
-      const erro = await res.text();
-      throw new Error(erro);
-    }
-
-    mostrarMensagem("✅ Aluno cadastrado com sucesso!", "sucesso");
-
-    document.getElementById("nome").value = "";
-    document.getElementById("email").value = "";
-
-    listar();
-
-  } catch (e) {
-    mostrarMensagem("❌ Erro ao cadastrar (email pode já existir)", "erro");
-  }
-}
-
-function editar(id, nomeAtual) {
-  const novoNome = prompt("Novo nome:", nomeAtual);
-  if (!novoNome) return;
-
-  fetch(`${SUPABASE_URL}?id=eq.${id}`, {
-    method: "PATCH",
-    headers: config.headers,
-    body: JSON.stringify({ nome: novoNome })
-  })
-  .then(() => {
-    mostrarMensagem("✏️ Nome atualizado!", "sucesso");
-    listar();
-  });
-}
-
-async function deletar(id) {
-  await fetch(`${SUPABASE_URL}?id=eq.${id}`, {
-    method: "DELETE",
-    headers: config.headers
-  });
-
-  mostrarMensagem("🗑️ Aluno deletado!", "sucesso");
-  listar();
-}
-
-listar();
-</script>
-
-</body>
+    <script src="config.js"></script>
+  </body>
 </html>
