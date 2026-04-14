@@ -1,10 +1,54 @@
+const SUPABASE_URL = "https://obwnwcfzzpyhqljaszor.supabase.co/rest/v1/alunos";
+const API_KEY = "sb_publishable_eY2pBB5brdVmp0l1qgEFig_7gX7_GU4";
+
+const config = {
+  headers: {
+    "Content-Type": "application/json",
+    apikey: API_KEY,
+    Authorization: `Bearer ${API_KEY}`,
+    Prefer: "return=representation",
+  },
+};
+
+function mostrarMensagem(texto, tipo) {
+  const msg = document.getElementById("mensagem");
+  msg.textContent = texto;
+  msg.className = tipo;
+
+  setTimeout(() => (msg.textContent = ""), 3000);
+}
+
+async function listar() {
+  const res = await fetch(`${SUPABASE_URL}?select=*`, {
+    headers: config.headers,
+  });
+
+  const data = await res.json();
+
+  const tabela = document.getElementById("tabela");
+  tabela.innerHTML = "";
+
+  data.forEach((aluno) => {
+    tabela.innerHTML += `
+      <tr>
+        <td>${aluno.id}</td>
+        <td>${aluno.nome}</td>
+        <td>${aluno.email}</td>
+        <td>
+          <button onclick="editar(${aluno.id}, '${aluno.nome}')">Editar</button>
+          <button onclick="deletar(${aluno.id})">Excluir</button>
+        </td>
+      </tr>
+    `;
+  });
+}
+
 async function cadastrar() {
   const nome = document.getElementById("nome").value.trim();
   const email = document.getElementById("email").value.trim();
 
-  // 🔒 Validação básica
   if (!nome || !email) {
-    mostrarMensagem("⚠️ Preencha nome e email!", "erro");
+    mostrarMensagem("⚠️ Preencha os campos!", "erro");
     return;
   }
 
@@ -12,35 +56,44 @@ async function cadastrar() {
     const res = await fetch(SUPABASE_URL, {
       method: "POST",
       headers: config.headers,
-      body: JSON.stringify([{ nome, email }])
+      body: JSON.stringify([{ nome, email }]),
     });
 
-    // 🔎 pega erro real do Supabase
-    if (!res.ok) {
-      const erro = await res.json();
-      console.log("Erro do Supabase:", erro);
+    if (!res.ok) throw new Error();
 
-      // erro comum: email duplicado
-      if (erro.message && erro.message.includes("duplicate")) {
-        mostrarMensagem("❌ Email já cadastrado!", "erro");
-      } else {
-        mostrarMensagem("❌ Erro ao cadastrar aluno", "erro");
-      }
+    mostrarMensagem("✅ Cadastrado com sucesso!", "sucesso");
 
-      return;
-    }
-
-    // ✅ sucesso
-    mostrarMensagem("✅ Aluno cadastrado com sucesso!", "sucesso");
-
-    // limpa campos
     document.getElementById("nome").value = "";
     document.getElementById("email").value = "";
 
     listar();
-
-  } catch (e) {
-    console.log("Erro geral:", e);
-    mostrarMensagem("❌ Erro de conexão com o servidor", "erro");
+  } catch {
+    mostrarMensagem("❌ Erro ao cadastrar", "erro");
   }
 }
+
+function editar(id, nomeAtual) {
+  const novoNome = prompt("Novo nome:", nomeAtual);
+  if (!novoNome) return;
+
+  fetch(`${SUPABASE_URL}?id=eq.${id}`, {
+    method: "PATCH",
+    headers: config.headers,
+    body: JSON.stringify({ nome: novoNome }),
+  }).then(() => {
+    mostrarMensagem("✏️ Atualizado!", "sucesso");
+    listar();
+  });
+}
+
+async function deletar(id) {
+  await fetch(`${SUPABASE_URL}?id=eq.${id}`, {
+    method: "DELETE",
+    headers: config.headers,
+  });
+
+  mostrarMensagem("🗑️ Deletado!", "sucesso");
+  listar();
+}
+
+listar();
